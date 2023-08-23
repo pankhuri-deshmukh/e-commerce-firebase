@@ -27,11 +27,13 @@ const ViewProduct: React.FC = () => {
   const parsedId = parseInt(id);
 
   const { loading, error, data } = useQuery(GET_PRODUCT_BY_ID, {
-    variables: { id: parsedId },
+   variables: { id: parsedId },
   });
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error.message}</p>;
+
+
 
   const product: Product = data.getProductById;
   const product_id = Number(product.product_id);
