@@ -10,12 +10,14 @@ import { ContextCart } from './Navbar';
 // import { VIEW_ALL_ORDERS } from '../graphql/queries/Order';
 // import { CHECK_IF_ADMIN } from '../graphql/queries/User';
 import { auth, db } from '../firebase_config/firebase';
-import { collection, getDocs } from 'firebase/firestore';
+import { addDoc, collection, deleteDoc, doc, getDocs, query, where } from 'firebase/firestore';
 
 const CartSide = () => {
   const navigate = useNavigate();
   const [allCartItems, setAllCartItems] = useState<CartItem[]>([]);
   const { viewCart, setViewCart } = useContext<ContextTypeCart>(ContextCart);
+
+  const [totalAmt, setTotalAmt] = useState(0);
   //const token = sessionStorage.getItem('token');
   //const [createOrderMutation] = useMutation(CREATE_ORDER);
 
@@ -23,34 +25,46 @@ const CartSide = () => {
   //  variables: { token: sessionStorage.getItem('token') || '' },
   //});
   const user = auth.currentUser; 
+  // let email = user?.email
+  // console.log(email)
   const cartCollectionRef = collection(db, "cart")
 
   const getItems = async () => {
     try{
-        const data = await getDocs(cartCollectionRef)
-        const filteredData : CartItem[] = data.docs.map((doc) => ({
+      if(user){
+        const data = await query(cartCollectionRef, where('userEmail', '==', user.email))
+        const dataSnap = await getDocs(data)
+        const filteredData : CartItem[] = dataSnap.docs.map((doc) => (
+        {
           userEmail: doc.data().userEmail,
-          itemName: doc.data().name,
+          itemName: doc.data().itemName,
           price: doc.data().price,
           cart_id: doc.id,
           quantity: Number(doc.data().quantity),
           subtotal: Number(doc.data().subtotal),
-          image: doc.data().image
+          image: doc.data().image,
+          product_id: doc.data().product_id,
         }
           ))
+
+          const totalSum = filteredData.reduce((sum, item) => sum + item.subtotal, 0);
+          setTotalAmt(totalSum)
+          // console.log(filteredData)
         setAllCartItems(filteredData)
+      }
+        
+        
       }
     catch(err) {
       console.error(err)
     }
+    //getItems()
   }
   useEffect(() => {
     getItems()
-  }, [])
+  }, [user])
 
-    if (!user) {
-      navigate('/login');
-    }
+    
     
     const isAdmin = user?.email === 'administrator@gmail.com'; //check if user is the administrator
     if(isAdmin){
@@ -84,7 +98,39 @@ const CartSide = () => {
     );
   }
 
+  const ordersRef = collection(db, "orders")
+  const orderItemRef = collection(db, "order_items")
+
   const handleCheckout = async () => {
+
+    const addedItem = await addDoc(ordersRef, {
+      total_amount : totalAmt,
+      userEmail : user.email,
+      payment_status: "paid",
+      order_status: "confirmed"
+    })
+
+    allCartItems.map( async (item) => {
+      await addDoc(orderItemRef, {
+        itemName: item.itemName,
+        price:item.price,
+        order_id: addedItem.id,
+        quantity: Number(item.quantity),
+        subtotal: Number(item.subtotal),
+        image: item.image
+      })
+    })
+
+    await Promise.all(allCartItems.map(async (item) => {
+      await deleteDoc(doc(cartCollectionRef, item.cart_id));
+    }))
+
+    setAllCartItems([]);
+    setTotalAmt(0);
+
+    alert('Your order has been placed!')
+
+
     // try {
     //   const { data } = await createOrderMutation({
     //     variables: {
@@ -119,6 +165,15 @@ const CartSide = () => {
           >
             Browse Products
           </button>
+          <button
+            className="bg-black text-white py-2 px-4 rounded-md mt-4"
+            onClick={() => {
+              setViewCart(!viewCart)
+              navigate('/myorders')
+          }}
+          >
+            View All Orders
+          </button>
         </div>
       
     );
@@ -130,6 +185,7 @@ const CartSide = () => {
     {allCartItems.map((item, index) => (
       <CartItemCard key={index} item={item} />
     ))}
+    <h1>{totalAmt}</h1>
   </div>
   <div className="flex justify-center">
     <button

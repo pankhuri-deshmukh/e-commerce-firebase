@@ -32,10 +32,9 @@ const ViewProduct: React.FC = () => {
     image: "",
 
   })
-
-  const getProduct = async () => {
   const docRef = doc(db, "products", id);
-
+  const getProduct = async () => {
+  
   try {
     const docSnap = await getDoc(docRef);
     if(docSnap.exists()) {
@@ -48,7 +47,7 @@ const ViewProduct: React.FC = () => {
         quantity: Number(docSnap.data().quantity),
         image: docSnap.data().image
       })
-      console.log(product)
+      //console.log(product)
     }
     else {
       console.log("Product does not exist")
@@ -78,14 +77,18 @@ const ViewProduct: React.FC = () => {
     }
 
     try{
+
+      //check if product with that product_id already exists in cart, if so - delete it and replace with new
       await addDoc(newItemRef, {
         userEmail: user.email,
         itemName: product.name,
         price: product.price,
         quantity: quantity,
         subtotal: quantity * Number(product.price),
-        image: product.image
+        image: product.image,
+        product_id: id,
       })
+
     }
     catch(err) {
       console.error(err)

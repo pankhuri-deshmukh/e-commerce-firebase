@@ -1,5 +1,4 @@
 import React from 'react';
-import {ApolloClient, InMemoryCache, ApolloProvider } from '@apollo/client'
 import { Routes, Route } from "react-router-dom"
 import ProductPage from './pages/ProductPage';
 import AddProduct from './pages/AddProduct';
@@ -17,13 +16,13 @@ import DeleteProduct from './pages/DeleteProduct';
 
 function App() {
 
-  const client = new ApolloClient({
-    uri: "http://localhost:4001/graphql",
-    cache: new InMemoryCache(),
-  })
+  // const client = new ApolloClient({
+  //   uri: "http://localhost:4001/graphql",
+  //   cache: new InMemoryCache(),
+  // })
 
   return (
-    <ApolloProvider client={client}>
+
     <div>
       <Navbar/>
     <Routes>
@@ -39,7 +38,6 @@ function App() {
     </Routes>
     <Footer />
     </div>
-  </ApolloProvider>
   )
   
 }

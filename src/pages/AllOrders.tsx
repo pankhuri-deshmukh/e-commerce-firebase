@@ -1,31 +1,67 @@
 import React, { useState, useEffect } from 'react';
-import { useQuery } from '@apollo/client';
+//import { useQuery } from '@apollo/client';
 import { Order } from '../interfaces/Order';
 import OrderCard from '../components/OrderCard';
-import { VIEW_ALL_ORDERS } from '../graphql/queries/Order';
+//import { VIEW_ALL_ORDERS } from '../graphql/queries/Order';
 import { useNavigate } from 'react-router-dom';
+import { auth, db } from '../firebase_config/firebase';
+import { collection, getDocs, query, where } from 'firebase/firestore';
 
 const AllOrders: React.FC = () => {
   const [allOrders, setAllOrders] = useState<Order[]>([]);
   const navigate = useNavigate()
 
-  const { loading, error, data } = useQuery(VIEW_ALL_ORDERS, {
-    variables: { token: sessionStorage.getItem('token') || '' },
-  });
+  const user = auth.currentUser; 
 
-  useEffect(() => {
-    if (data) {
-      setAllOrders(data.viewOrders); 
+  const OrderCollectionRef = collection(db, "orders")
+
+  const getItems = async () => {
+    try{
+      if(user){
+        const data = await query(OrderCollectionRef, where('userEmail', '==', user.email))
+        const dataSnap = await getDocs(data)
+        const filteredData : Order[] = dataSnap.docs.map((doc) => (
+        {
+          userEmail: doc.data().userEmail,
+          total_amount: doc.data().total_amount,
+          payment_status: doc.data().payment_status,
+          order_id: doc.id,
+          order_status: doc.data().order_status,
+        }
+          ))
+          // console.log(filteredData)
+          setAllOrders(filteredData)
+      }
+        
+        
+      }
+    catch(err) {
+      console.error(err)
     }
-  }, [data]);
-
-  if (loading) {
-    return <p>Loading...</p>;
+    //getItems()
   }
+  useEffect(() => {
+    getItems()
+  }, [user])
 
-  if (error) {
-    return <p>Error fetching orders.</p>;
-  }
+
+  // const { loading, error, data } = useQuery(VIEW_ALL_ORDERS, {
+  //   variables: { token: sessionStorage.getItem('token') || '' },
+  // });
+
+  // useEffect(() => {
+  //   if (data) {
+  //     setAllOrders(data.viewOrders); 
+  //   }
+  // }, [data]);
+
+  // if (loading) {
+  //   return <p>Loading...</p>;
+  // }
+
+  // if (error) {
+  //   return <p>Error fetching orders.</p>;
+  // }
 
   if (allOrders.length === 0) {
     return (

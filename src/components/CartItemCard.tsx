@@ -12,6 +12,8 @@ const CartItemCard: React.FC<CartItemProps> = ({ item }) => {
   //const [removeItemFromCart] = useMutation(REMOVE_ITEM_FROM_CART);
   const navigate = useNavigate();
 
+  //const docRef = doc(db, "products", item.product_id);
+
   const handleDelete = async () => {
     const user = auth.currentUser; 
     if (!user) {
@@ -20,6 +22,7 @@ const CartItemCard: React.FC<CartItemProps> = ({ item }) => {
     try{
       const delItem = doc(db, "cart", item.cart_id)
       await deleteDoc(delItem)
+
     }
     catch(err){
       console.error(err)

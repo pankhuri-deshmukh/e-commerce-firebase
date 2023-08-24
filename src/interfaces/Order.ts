@@ -1,18 +1,20 @@
-import { Product } from "./Product";
+//import { Product } from "./Product";
 
 export interface Order{
-    order_id: number;
+    order_id: string;
     payment_status: string;
     total_amount: number;
     order_status: string;
 }
 
 export interface OrderItem {
-    item_id: number;
-    quantity: number;
-    subtotal: number;
-    product: Product;
-    order: Order;
+    quantity: number,
+    subtotal: number,
+    price: number,
+    itemName: string,
+    order_item_id: string,
+    order_id: string,
+    image: string,
 
 }
 
