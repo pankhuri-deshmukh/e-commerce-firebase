@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/e-commerce-firebase/static/css/main.3c02ae63.css",
+    "main.js": "/e-commerce-firebase/static/js/main.b6dc4688.js",
+    "index.html": "/e-commerce-firebase/index.html",
+    "main.3c02ae63.css.map": "/e-commerce-firebase/static/css/main.3c02ae63.css.map",
+    "main.b6dc4688.js.map": "/e-commerce-firebase/static/js/main.b6dc4688.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.3c02ae63.css",
+    "static/js/main.b6dc4688.js"
+  ]
+}
