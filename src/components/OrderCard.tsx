@@ -3,7 +3,7 @@ import { OrderItem, OrderProps } from '../interfaces/Order';
 import OrderItemCard from './OrderItemCard'; 
 //import { useMutation, useQuery } from '@apollo/client'; 
 //import { VIEW_ALL_ORDERS, VIEW_ORDER_DETAILS } from '../graphql/queries/Order'; 
-import { useNavigate } from 'react-router-dom';
+//import { useNavigate } from 'react-router-dom';
 //import { CANCEL_ORDER } from '../graphql/mutations/Order';
 import { FcExpand } from 'react-icons/fc';
 import { MdOutlineMinimize } from 'react-icons/md';
@@ -17,7 +17,7 @@ const OrderCard: React.FC<OrderProps> = ({ order }) => {
   let can = order.order_status === "cancelled"
   const [cancel, setCancel] = useState(can);
   
-  const navigate = useNavigate()
+  //const navigate = useNavigate()
 
   // const [cancelOrder] = useMutation(CANCEL_ORDER);
 
