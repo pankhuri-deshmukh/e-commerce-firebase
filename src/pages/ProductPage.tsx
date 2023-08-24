@@ -10,10 +10,9 @@ const ProductPage: React.FC = () => {
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const productsCollectionRef = collection(db, "products")
 
-  //const { loading, error, data } = useQuery(GET_ALL_PRODUCTS); 
-  useEffect(() => {
-
-    const getProducts = async () => {
+  //const { loading, error, data } = useQuery(GET_ALL_PRODUCTS);
+  
+  const getProducts = async () => {
     try{
         const data = await getDocs(productsCollectionRef)
         const filteredData : Product[] = data.docs.map((doc) => ({
@@ -26,18 +25,14 @@ const ProductPage: React.FC = () => {
           image: doc.data().image
         }
           ))
-
-          console.log(filteredData)
-
         setAllProducts(filteredData)
       }
     catch(err) {
       console.error(err)
     }
   }
-
+  useEffect(() => {
     getProducts()
-    
   }, [])
 
   return (

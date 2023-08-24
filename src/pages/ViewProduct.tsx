@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useMutation, useQuery } from '@apollo/client';
-import { GET_PRODUCT_BY_ID } from '../graphql/queries/Product';
-import { ADD_ITEM_TO_CART } from '../graphql/mutations/Cart';
+//import { useMutation, useQuery } from '@apollo/client';
+//import { GET_PRODUCT_BY_ID } from '../graphql/queries/Product';
+//import { ADD_ITEM_TO_CART } from '../graphql/mutations/Cart';
 import { Product } from '../interfaces/Product';
-import { VIEW_CART } from '../graphql/queries/Cart';
+//import { VIEW_CART } from '../graphql/queries/Cart';
+import {auth, db} from "../firebase_config/firebase"
+import { getDoc, doc, addDoc, collection } from 'firebase/firestore'
 
 type IDParams = {
   id: string;
@@ -16,55 +18,120 @@ function invariant(value: unknown): asserts value {
 }
 
 const ViewProduct: React.FC = () => {
-  const [addItemToCart] = useMutation(ADD_ITEM_TO_CART);
+  const { id } = useParams<IDParams>();
+  invariant(id);
+  //const parsedId = parseInt(id);
+
+  const [product, setProduct] = useState<Product>({
+    name: "",
+    description: "",
+    price: "",
+    category: "",
+    product_id: -1,
+    quantity: 0,
+    image: "",
+
+  })
+
+  const getProduct = async () => {
+  const docRef = doc(db, "products", id);
+
+  try {
+    const docSnap = await getDoc(docRef);
+    if(docSnap.exists()) {
+      setProduct({
+        name: docSnap.data().name,
+        description: docSnap.data().desc,
+        price: docSnap.data().price,
+        category: docSnap.data().category,
+        product_id: Number(docSnap.id),
+        quantity: Number(docSnap.data().quantity),
+        image: docSnap.data().image
+      })
+      console.log(product)
+    }
+    else {
+      console.log("Product does not exist")
+    }
+  }
+  catch(err) {
+    console.error(err)
+  }
+  }
+  useEffect(() => {
+    getProduct()
+  }, [])
+
+  //const [addItemToCart] = useMutation(ADD_ITEM_TO_CART);
 
   const navigate = useNavigate();
   const [quantity, setQuantity] = useState(1);
-
-  const { id } = useParams<IDParams>();
-  invariant(id);
-
-  const parsedId = parseInt(id);
-
-  const { loading, error, data } = useQuery(GET_PRODUCT_BY_ID, {
-   variables: { id: parsedId },
-  });
-
-  if (loading) return <p>Loading...</p>;
-  if (error) return <p>Error: {error.message}</p>;
-
-
-
-  const product: Product = data.getProductById;
-  const product_id = Number(product.product_id);
+ 
+  const newItemRef = collection(db, "cart")
 
   const handleAddToCart = async () => {
-    const token = sessionStorage.getItem('token');
+    const user = auth.currentUser; 
 
-    if (!token) {
+    if (!user) {
       navigate('/login');
       return;
     }
 
-    try {
-      const { data } = await addItemToCart({
-        variables: { product_id, quantity, token },
-        refetchQueries: [{ query: VIEW_CART, variables: { token } }, 
-          {query: GET_PRODUCT_BY_ID, variables: { id: parsedId }}],
-      });
-
-      //error handling required
-      console.log(data)
-
-      // if (data && data.addItemToCart.product !== null) {
-      //   console.log('Successfully added to cart');
-      // } else {
-      //   alert("Selected quantity exceeds available quantity")
-      // }
-    } catch (error) {
-      console.error('Add to cart error:', error);
+    try{
+      await addDoc(newItemRef, {
+        userEmail: user.email,
+        itemName: product.name,
+        price: product.price,
+        quantity: quantity,
+        subtotal: quantity * Number(product.price),
+        image: product.image
+      })
     }
-  };
+    catch(err) {
+      console.error(err)
+    }
+
+  }
+
+  // const { loading, error, data } = useQuery(GET_PRODUCT_BY_ID, {
+  //  variables: { id: parsedId },
+  // });
+
+  // if (loading) return <p>Loading...</p>;
+  // if (error) return <p>Error: {error.message}</p>;
+
+
+  
+  // const product: Product = data.getProductById;
+  // const product_id = Number(product.product_id);
+
+  // const handleAddToCart = async () => {
+  //   const token = sessionStorage.getItem('token');
+
+  //   if (!token) {
+  //     navigate('/login');
+  //     return;
+  //   }
+
+  //   try {
+  //     const { data } = await addItemToCart({
+  //       variables: { product_id, quantity, token },
+  //       refetchQueries: [{ query: VIEW_CART, variables: { token } }, 
+  //         {query: GET_PRODUCT_BY_ID}],
+  //     });
+
+  //     //error handling required
+  //     console.log(data)
+
+  //     // if (data && data.addItemToCart.product !== null) {
+  //     //   console.log('Successfully added to cart');
+  //     // } else {
+  //     //   alert("Selected quantity exceeds available quantity")
+  //     // }
+  //   } catch (error) {
+  //     console.error('Add to cart error:', error);
+  //   }
+  // };
 
   return (
     <div className="flex p-4 rounded-lg h-screen">

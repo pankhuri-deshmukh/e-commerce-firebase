@@ -20,6 +20,8 @@ const Login: React.FC = () => {
       try {
         const userCredential = await signInWithEmailAndPassword(auth, email, password)
         const user = userCredential.user;
+        const userEmail = user?.email
+        console.log(userEmail)
 
         // const { data } = await loginUserMutation({
         //   variables: { email, password },

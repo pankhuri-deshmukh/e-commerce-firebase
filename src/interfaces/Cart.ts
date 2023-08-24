@@ -6,11 +6,13 @@ export interface Cart {
 }
 
 export interface CartItem {
-    cart_item_id: number;
+    cart_id: string;
+    itemName: string;
     quantity: number;
     subtotal: number;
-    product : Product;
-    cart : Cart;
+    price : number;
+    userEmail : string;
+    image: string;
   
 }
 
